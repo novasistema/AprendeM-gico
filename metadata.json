@@ -1,0 +1,6 @@
+{
+  "name": "AprendeMágico - Academia Estelar",
+  "description": "Aplicación de estudio gamificada con IA, avatares personalizables, cuestionarios adaptativos y soporte de idiomas para niños.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

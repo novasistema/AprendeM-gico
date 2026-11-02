@@ -1,0 +1,69 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "Kid student profile with gamification stats",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "displayName": { "type": "string", "maxLength": 100 },
+        "email": { "type": "string", "format": "email" },
+        "xp": { "type": "number" },
+        "coins": { "type": "number" },
+        "level": { "type": "number" },
+        "streak": { "type": "number" },
+        "avatarConfig": { "type": "string" },
+        "unlockedItems": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["uid", "displayName", "xp", "coins", "level"]
+    },
+    "Quiz": {
+      "title": "Generated Quiz",
+      "description": "Quiz generated from homework or topics by AI",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "title": { "type": "string", "maxLength": 200 },
+        "subject": { "type": "string", "maxLength": 100 },
+        "language": { "type": "string", "maxLength": 50 },
+        "sourceType": { "type": "string" },
+        "questions": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "userId", "title", "subject", "createdAt"]
+    },
+    "StudySession": {
+      "title": "Study Session Record",
+      "description": "Completed quiz or study session results",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "quizId": { "type": "string" },
+        "score": { "type": "number" },
+        "totalQuestions": { "type": "number" },
+        "coinsEarned": { "type": "number" },
+        "xpEarned": { "type": "number" },
+        "completedAt": { "type": "string" }
+      },
+      "required": ["id", "userId", "score", "coinsEarned", "completedAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "User" },
+      "description": "User profile document"
+    },
+    "/quizzes/{quizId}": {
+      "schema": { "$ref": "Quiz" },
+      "description": "Quizzes generated for users"
+    },
+    "/study_sessions/{sessionId}": {
+      "schema": { "$ref": "StudySession" },
+      "description": "Study session records"
+    }
+  }
+}

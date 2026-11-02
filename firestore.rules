@@ -1,0 +1,85 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    match /users/{userId} {
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
+
+      allow create: if isSignedIn() && isOwner(userId) &&
+        incoming().keys().hasAll(['uid', 'displayName', 'xp', 'coins', 'level']) &&
+        incoming().keys().hasOnly(['uid', 'displayName', 'email', 'xp', 'coins', 'level', 'streak', 'avatarConfig', 'unlockedItems', 'createdAt', 'updatedAt']) &&
+        incoming().uid == userId &&
+        incoming().displayName is string && incoming().displayName.size() <= 100 &&
+        incoming().xp is number && incoming().coins is number && incoming().level is number &&
+        incoming().createdAt is string;
+
+      allow update: if isSignedIn() && isOwner(userId) &&
+        incoming().uid == existing().uid &&
+        incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'email', 'xp', 'coins', 'level', 'streak', 'avatarConfig', 'unlockedItems', 'updatedAt']) &&
+        incoming().displayName is string && incoming().displayName.size() <= 100 &&
+        incoming().xp is number && incoming().coins is number && incoming().level is number;
+
+      allow delete: if isSignedIn() && isOwner(userId);
+    }
+
+    match /quizzes/{quizId} {
+      allow get: if isSignedIn() && (resource.data.userId == request.auth.uid);
+      allow list: if isSignedIn() && (resource.data.userId == request.auth.uid);
+
+      allow create: if isSignedIn() &&
+        incoming().keys().hasAll(['id', 'userId', 'title', 'subject', 'createdAt']) &&
+        incoming().keys().hasOnly(['id', 'userId', 'title', 'subject', 'language', 'sourceType', 'questions', 'createdAt']) &&
+        incoming().userId == request.auth.uid &&
+        incoming().title is string && incoming().title.size() <= 200 &&
+        incoming().subject is string && incoming().subject.size() <= 100 &&
+        incoming().createdAt is string;
+
+      allow update: if isSignedIn() && resource.data.userId == request.auth.uid &&
+        incoming().userId == existing().userId &&
+        incoming().diff(existing()).affectedKeys().hasOnly(['title', 'subject', 'language', 'questions']);
+
+      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+
+    match /study_sessions/{sessionId} {
+      allow get: if isSignedIn() && (resource.data.userId == request.auth.uid);
+      allow list: if isSignedIn() && (resource.data.userId == request.auth.uid);
+
+      allow create: if isSignedIn() &&
+        incoming().keys().hasAll(['id', 'userId', 'score', 'coinsEarned', 'completedAt']) &&
+        incoming().keys().hasOnly(['id', 'userId', 'quizId', 'score', 'totalQuestions', 'coinsEarned', 'xpEarned', 'completedAt']) &&
+        incoming().userId == request.auth.uid &&
+        incoming().score is number && incoming().coinsEarned is number &&
+        incoming().completedAt is string;
+
+      allow update: if false;
+
+      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+  }
+}
